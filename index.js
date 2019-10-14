@@ -37,7 +37,7 @@ global.goto = (page, url, options = {}) => {
     let f2mmovies = await f2m(browser, { pages: [1, 2] });
     console.log("finished");
     fs.writeFile(
-      "./test/imdbtest.json",
+      "./tests/imdbtest.json",
       JSON.stringify(f2mmovies, null, 2),
       () => {}
     );
