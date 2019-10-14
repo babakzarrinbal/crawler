@@ -1,8 +1,8 @@
-const host = "https://www.film2movie.ws";
+const host = "https://www.film2movie.li";
 const defaults = {
   pages: 1,
   queue: 8,
-  logging: true,
+  logging: true
 };
 
 var async = require("async");
@@ -34,7 +34,7 @@ var main = function(brw, options = {}) {
       let dp = {
         id: dpages.length + 1,
         page: null,
-        free: true,
+        free: true
       };
       dpages.push(dp);
       dp.page = await browser.newPage();
