@@ -37,12 +37,13 @@ global.goto = (page, url, options = {}) => {
   try {
     let f2mmovies = await f2m(browser, { pages: "1-3" });
     let movies = await getMoviesInfos(f2mmovies);
-    console.log("finished");
-    fs.writeFile(
-      "./tests/imdbtest.json",
-      JSON.stringify(movies, null, 2),
-      () => {}
-    );
+    movies.forEach(m=>{
+      fs.writeFile(
+        `./db/zmovies/videos/${m.imdb}.json`,
+        JSON.stringify(m),
+        () => {}
+      );
+    })
   } catch (err) {
     console.log(err);
   }

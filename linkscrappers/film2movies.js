@@ -166,6 +166,7 @@ var getmovielinks = async function(link, resolver = () => {}) {
   }
 
   pageobj.free = true;
+  movie.updatedAt = new Date();
   if (movie.imdb) movies.push(movie);
   resolver();
 };
