@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const f2m = require("./linkscrappers/film2movies");
+const {getMoviesInfos} = require("./utils/open_imdb")
 global.delay = timout => {
   return new Promise(resolve => setTimeout(resolve, timout));
 };
@@ -34,11 +35,12 @@ global.goto = (page, url, options = {}) => {
 (async () => {
   const browser = await puppeteer.launch({ headless: false });
   try {
-    let f2mmovies = await f2m(browser, { pages: [1, 2] });
+    let f2mmovies = await f2m(browser, { pages: "1-3" });
+    let movies = await getMoviesInfos(f2mmovies);
     console.log("finished");
     fs.writeFile(
       "./tests/imdbtest.json",
-      JSON.stringify(f2mmovies, null, 2),
+      JSON.stringify(movies, null, 2),
       () => {}
     );
   } catch (err) {
