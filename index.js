@@ -39,6 +39,11 @@ global.goto = (page, url, options = {}) => {
     let f2mmovies = await f2m(browser, { pages: "1-3" });
     let movies = await getMoviesInfos(f2mmovies);
     movies.forEach(m => {
+      let curmov = fs.readFileSync(`./db/zmovies/videos/${m.imdb}.json`);
+      if(curmov) {
+        curmov = JSON.parse(curmov);
+        if(!(m.Info||{}).Title) m.Info = curmov.Info || {};
+      }
       fs.writeFile(
         `./db/zmovies/videos/${m.imdb}.json`,
         JSON.stringify(m),
