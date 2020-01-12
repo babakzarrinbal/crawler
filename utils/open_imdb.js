@@ -20,27 +20,32 @@ var getMInfo = id =>
       .on("error", reject);
   });
 
-var getMoviesInfos = async function(movies){
-   return Promise.all(movies.map(v=>new Promise(async resolve=>{
-    let Info;
-    try{
-      Info = await getMInfo(v.imdb)
-    }catch(e){
-      Info={}
-    }
-    return resolve({...v,Info});
-  })));
-}
+var getMoviesInfos = async function(movies) {
+  return Promise.all(
+    movies.map(
+      v =>
+        new Promise(async resolve => {
+          let Info;
+          try {
+            Info = await getMInfo(v.imdb);
+          } catch (e) {
+            Info = {};
+          }
+          return resolve({ ...v, Info:Info.Title?Info:{} }); 
+        })
+    )
+  );
+};
 
 module.exports = {
   getMInfo,
   getMoviesInfos
-}
+};
 // testing
 // let movies = require('../tests/imdbtest.json');
 
 // let init = async () => {
-  
+
 //   let finalmovies = await Promise.all(movies.map(v=>new Promise(async resolve=>{
 //     let Info;
 //     try{
@@ -50,7 +55,7 @@ module.exports = {
 //     }
 //     return resolve({...v,Info});
 //   })));
-  
+
 //   fs.writeFile(
 //     "./tests/imdbtest2.json",
 //     JSON.stringify(finalmovies, null, 2),

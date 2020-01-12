@@ -94,7 +94,7 @@ var getmovielinks = async function(link, resolver = () => {}) {
   pageobj.free = false;
   await goto(page, link, { stop: 7000 });
 
-  atags = movie.rawlinks = await page.$$eval("a", el => {
+  atags =  await page.$$eval("a", el => {
     return el.map(e => ({ href: e.href, text: e.innerText }));
   });
   try {

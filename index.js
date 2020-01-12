@@ -1,7 +1,8 @@
 const puppeteer = require("puppeteer");
+const { exec } = require("child_process");
 const fs = require("fs");
 const f2m = require("./linkscrappers/film2movies");
-const {getMoviesInfos} = require("./utils/open_imdb")
+const { getMoviesInfos } = require("./utils/open_imdb");
 global.delay = timout => {
   return new Promise(resolve => setTimeout(resolve, timout));
 };
@@ -37,14 +38,18 @@ global.goto = (page, url, options = {}) => {
   try {
     let f2mmovies = await f2m(browser, { pages: "1-3" });
     let movies = await getMoviesInfos(f2mmovies);
-    movies.forEach(m=>{
+    movies.forEach(m => {
       fs.writeFile(
         `./db/zmovies/videos/${m.imdb}.json`,
         JSON.stringify(m),
         () => {}
       );
-    })
+    });
   } catch (err) {
     console.log(err);
   }
+  exec(
+    'cd db && git add . && git commit -m "autocommit" && git push ',
+    console.log
+  );
 })();
