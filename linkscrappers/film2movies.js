@@ -23,7 +23,7 @@ var linkpage = [],
  * @param {boolean} options.logging enables console.log
  */
 var main = function(brw, options = {}) {
-  logging = options.logging || defaults.logging;
+  logging = options.logging == undefined ? defaults.logging : options.logging;
   pages = options.pages || defaults.pages;
   pages = [].concat(
     ...pages
@@ -38,7 +38,6 @@ var main = function(brw, options = {}) {
       })
   );
   queue = options.queue || defaults.queue;
-  options;
   browser = brw;
   return new Promise(async resolve => {
     detailqueue = async.queue(getmovielinks, queue);
@@ -54,7 +53,7 @@ var main = function(brw, options = {}) {
 
     await getpagelinks(pages);
     detailqueue.drain = async () => {
-      await Promise.all(dpages.map(dp => dp.page.close()));
+      // await Promise.all(dpages.map(dp => dp.page.close()));
       resolve(movies);
     };
   });
@@ -75,7 +74,6 @@ var getpagelinks = async function(pages) {
         pushedlinks.push(link);
         detailqueue.push(link);
       });
-      console.log(detailqueue);
       linkpage = [...linkpage, ...pagelinks];
     }
     resolve();
@@ -162,7 +160,7 @@ var getmovielinks = async function(link, resolver = () => {}) {
     movie.imdb = imdbarr[imdbarr.indexOf("title") + 1];
     logging && console.log(`${movie.imdb} links extracted!`);
   } catch (err) {
-    console.log(err);
+    console.log('get movielink Error: ',err);
   }
 
   pageobj.free = true;
