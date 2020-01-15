@@ -1,38 +1,41 @@
-const {
-  getLinks,
-  getPagesReg,
-  getEachLinks
-} = require("../utils/regexcrawler");
+const { getLinks, getEachLinks } = require("../../utils/regexcrawler");
 let exp = {};
 qltysort = ["hdcm", "dvdscr", "360p", "480p", "720p", "1080p", "unknown"];
+
 exp.main = async function(
-  urls = [
-    "https://www.film2movie.li/page/1",
-    "https://www.film2movie.li/page/2",
-    "https://www.film2movie.li/page/3",
-    "https://www.film2movie.li/page/4"
-  ],
-  pageregex = [
-    /<section[^>]*class="main"[^>]*>.*?<\/section>/,
-    /<a[^>]*class="more-link"[^>]*?>/g,
-    /href="(.*?)"/
-  ],
-  linkregex = [/<a[^>]*>لینک مستقیم<\/a>/g],
-  imdbregex = /imdb\.com\/title\/(tt\d+)/
+  urls = "https://www.film2movie.li/page/1",
+  containerregex = /\<section.*?class="main".*?section\>)/,
+  linksregex = /\<a.*?film2movie\.li\/[0-9]*?\/.*?\/a\>/
 ) {
   urls = Array.isArray(urls) ? urls : [urls];
-  let links = await getPagesReg(urls, pageregex, 16);
-  let pagelinks = links.reduce((cu, c) => [...cu, ...c.data], []);
-  let videolinks = await getPagesReg(
-    pagelinks,
-    { links: linkregex, imdbid: imdbregex },
-    16
-  );
+  let links = await getLinks(urls,/\<section.*?class="main".*?section\>)/);
+  let pagelinks = links
+    .filter(
+      (l, i, a) =>
+        (l.href || "").match(pageregex) &&
+        a.findIndex(v => v.href == l.href) == i
+    )
+    .map(l => l.href);
+  let videolinks = await getEachLinks(pagelinks, 16);
   return videolinks.map(vl => {
     let movie = {};
-    movie.url = vl.url;
-    let rawlinks = vl.data.links.map(l => l.match(/href="(.*?)"/)[1]);
-    movie.imdb = (vl.data.imdbid[0] || "").toLowerCase();
+    movie.url = vl.url
+    let atags = vl.links.map(l => ({
+      href: l.href,
+      text: (l.a.match(/\>(.*?)\</) || [])[1]
+    }));
+    movie.imdb = (
+      atags.find(a => a.href.includes("imdb.com")) || { href: "" }
+    ).href.toLowerCase();
+    imdbarr = movie.imdb.split("/");
+    movie.imdb = imdbarr[imdbarr.indexOf("title") + 1];
+    let rawlinks = atags
+      .filter(
+        a =>
+          a.text == "لینک مستقیم" &&
+          ["mp4", "mkv"].includes(a.href.slice(-3).toLowerCase())
+      )
+      .map(a => a.href);
 
     // create currect link format
     movie.links = [];

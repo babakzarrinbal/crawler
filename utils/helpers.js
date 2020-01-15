@@ -1,4 +1,6 @@
 let exp = {};
+const qltysort = ["hdcm", "dvdscr", "360p", "480p", "720p", "1080p", "unknown"];
+
 // creates array from numbers specefied with dash and comma seperated
 exp.ArrFromText = function(pages) {
   return [].concat(
@@ -48,4 +50,22 @@ exp.chainReg = function chainReg(text, regex) {
   }, text);
 };
 
+exp.movieSorter = function(movie){
+  movie.trailers.sort((a, b) =>
+    qltysort.indexOf(a.quality) > qltysort.indexOf(b.quality) ? 1 : -1
+  );
+
+  if ((movie.trailers[0] || {}).season)
+    movie.trailers.sort((a, b) => (a.season > b.season ? 1 : -1));
+
+  movie.links.sort((a, b) =>
+    qltysort.indexOf(a.quality) > qltysort.indexOf(b.quality) ? 1 : -1
+  );
+  if ((movie.links[0] || {}).episode)
+    movie.links.sort((a, b) =>{
+      return a.season + "-" + a.episode > b.season + "-" + b.episode ? 1 : -1}
+    );
+}
 module.exports = exp;
+
+//test

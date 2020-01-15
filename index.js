@@ -1,73 +1,85 @@
-const puppeteer = require("puppeteer");
-const { exec } = require("child_process");
+const f2m = require("./linkscrappers/film2movie");
+const { GetInfos } = require("./utils/open_imdb");
+const { movieSorter } = require("./utils/helpers");
 const fs = require("fs");
-const f2m = require("./linkscrappers/film2movies");
-const f2mrg = require("./linkscrappers/film2movie.regex").main;
-const { getMoviesInfos } = require("./utils/open_imdb");
-global.delay = timout => {
-  return new Promise(resolve => setTimeout(resolve, timout));
-};
-global.goto = (page, url, options = {}) => {
-  return new Promise(async mresolve => {
+
+(async function() {
+  let callback = async function(m) {
+    // m = await new Promise(resolve => GetInfos(m, resolve));
+    // if(!m.Info.Title) console.log(m.imdb,"> no Info")
     try {
-      if (options.stop || options.stopcallback) {
-        options.stop = options.stop || 3000;
-        page.goto(url, options);
-        if (options.stopcallback) {
-          while (!(await page.evaluate(options.stopcallback))) {
-            await delay(options.stop || 2000);
-          }
-        } else {
-          await delay(options.stop || 2000);
-        }
-        await page.evaluate(() => {
-          window.stop();
-        });
-        mresolve();
-      } else {
-        await page.goto(url, options);
+      let curmov = require(`./db/zmovies/videos/${m.imdb}.json`);
+      if (curmov && !(m.Info || {}).Title) m.Info = curmov.Info || {};
+      // for (li of ["links", "trailers"]) {
+      //   curmov[li].forEach(l => {
+      //     if (m[li].find(ls => ls.link == l.link)) return;
+      //     m[li].push(l);
+      //   });
+      // }
+      m.url = Array.from(
+        new Set([
+          m.url,
+          ...(Array.isArray(curmov.url) ? curmov.url : [curmov.url])
+        ])
+      );
+    } catch (e) {}
+    movieSorter(m);
+    fs.writeFile(
+      `./db/zmovies/videos/${m.imdb}.json`,
+      // `./tests/${m.imdb}.json`,
+      JSON.stringify(m),
+      () => {
+        console.log(m.imdb, " updated");
       }
-      mresolve();
-    } catch (err) {
-      console.log("babak------------------", err);
-    }
-  });
-};
+    );
+  };
 
-(async () => {
-  try {
-      let url = "https://www.film2movie.li/";
-      let sublinkregex = /film2movie\.li\/d+?\//
-      console.time('pages: '+url);
-      let movies = await f2mrg(url);
-      // let movies = await getMoviesInfos(f2mmovies);
-      // console.log(movies);
-      movies.forEach(m => {
-        try {
-
-          let curmov = require(`./db/zmovies/videos/${m.imdb}.json`);
-          if (curmov) {
-            curmov = JSON.parse(curmov);
-            if (!(m.Info || {}).Title) m.Info = curmov.Info || {};
-          }
-        } catch (e) {}
-          fs.writeFile(
-          // `./db/zmovies/videos/${m.imdb}.json`,
-          `./tests/${m.imdb}.json`,
-          JSON.stringify(m),
-          () => {}
-        );
-      });
-      console.timeEnd('pages: '+url);
-    
-  } catch (err) {
-    console.log('main error',err);
-  }
-  // exec(
-  //   'cd db && git add . && git commit -m "autocommit" && git push ',
-  //   console.log
-  // );
+  f2m("1-10", callback,{headless:true});
 })();
+
+// const puppeteer = require("puppeteer");
+// const { exec } = require("child_process");
+// const path = require('path');
+// const fs = require("fs");
+// const f2m = require("./linkscrappers/film2movies");
+// const f2mrg = require("./linkscrappers/film2movie.regex").main;
+// const helper = require("./utils/helpers");
+//regex crawler
+// (async () => {
+// try {
+//   let url = "https://www.film2movie.li/page/";
+//   let step = 6
+//   for (let i = 1; i < 11; i++) {
+//     console.log(`pages: ${i}-${i+step-1}`);
+//     let movies = await f2mrg(helper.ArrOfNum(i, i+step-1).map(l => url + l),undefined,getcurfile);
+//     i +=(step-1);
+//     movies.forEach(m => {
+//       console.log(m.imdb,m.links.length,m.trailers.length)
+//       try {
+//         let curmov = require(`./db/zmovies/videos/${m.imdb}.json`);
+//         if (curmov && !(m.Info || {}).Title) m.Info = curmov.Info || {};
+//       } catch (e) {}
+//       if(!m.links.length && !m.trailers.length) return;
+
+//       fs.writeFile(
+//         `./db/zmovies/videos/${m.imdb}.json`,
+//         // `./tests/${m.imdb}.json`,
+//         JSON.stringify(m),
+//         () => {}
+//       );
+//     });
+//   }
+// } catch (err) {
+//   console.log("main error", err);
+// }
+
+// exec(
+//   'cd db && git add . && git commit -m "autocommit" && git push ',
+//   console.log
+// );
+// })();
+
+//old crawler
 // (async () => {
 //   const browser = await puppeteer.launch({ headless: false });
 //   try {

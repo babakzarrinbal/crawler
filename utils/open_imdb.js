@@ -1,5 +1,6 @@
 // require("promise.prototype.finally").shim();
 // const fs = require('fs')
+const async = require("async");
 var getMInfo = id =>
   new Promise((resovle, reject) => {
     const http = require("http");
@@ -19,7 +20,23 @@ var getMInfo = id =>
       })
       .on("error", reject);
   });
+let q;
 
+var GetInfos = async (movies, cb, threads = 16) => {
+  if (!q) {
+    q = async.queue(
+      (movie, callback) => getMInfo(movie.imdb).then(callback),
+      threads
+    );
+  }
+  if (!Array.isArray(movies)) movies = [movies];
+  movies.forEach(m =>
+    q.push(m, result => {
+      m.Info = result;
+      cb(m);
+    })
+  );
+};
 var getMoviesInfos = async function(movies) {
   return Promise.all(
     movies.map(
@@ -31,7 +48,7 @@ var getMoviesInfos = async function(movies) {
           } catch (e) {
             Info = {};
           }
-          return resolve({ ...v, Info:Info.Title?Info:{} }); 
+          return resolve({ ...v, Info: Info.Title ? Info : {} });
         })
     )
   );
@@ -39,7 +56,8 @@ var getMoviesInfos = async function(movies) {
 
 module.exports = {
   getMInfo,
-  getMoviesInfos
+  getMoviesInfos,
+  GetInfos
 };
 // testing
 // let movies = require('../tests/imdbtest.json');

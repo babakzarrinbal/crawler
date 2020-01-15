@@ -18,7 +18,7 @@ exp.getPageReg = (url, regex = /<a .*?\/a>/g) =>
   fetch(url)
     .then(r => r.text())
     .then(t => helper.chainReg(t, regex))
-    .catch(e => []);
+    .catch(e => (console.log('error getting url',e),[]));
 
 exp.getPagesReg = (urls, regex = /<a .*?\/a>/g, threads = 16) =>
   new Promise(resolve => {
@@ -34,6 +34,7 @@ exp.getPagesReg = (urls, regex = /<a .*?\/a>/g, threads = 16) =>
     q.drain = l => {
       resolve(flinks);
     };
+    if (!Array.isArray(urls)) urls = [urls];
     urls.forEach(url => q.push(url));
   });
 
